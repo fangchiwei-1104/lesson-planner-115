@@ -26,7 +26,7 @@ main{max-width:1360px}.plan-button{display:block;width:100%;text-align:left;min-
 <div class="note"><strong>這是依已知停課項目計算的預估。</strong>每列包含該列日期整天的課，之前日期的課會自動扣除；不依鐘點判斷當天是否已上完課。若今天已上完課，請把查詢日改為明天。</div>
 <details class="panel"><summary>計算規則與待確認活動</summary><ul><li>支援 2026/9/17 至本學期第三次段考；更早的查詢日期會從 9/17 起算。段考開始日及考試期間不計一般課。</li><li>已扣除國定假日及補假：9/25、9/28、10/9、10/26、12/25、2027/1/1。</li><li>九年級另扣除 11/18–20 校外教學、12/23–24 模擬考，按全天不上原課計算。</li><li>依你確認，週四社團活動不影響 902、901 公民課，不扣除。</li><li>9/18 宣導、11/2 木工體驗、校慶籃球賽、其他競賽及健康檢查等，影響班級或節次未確認，尚未扣除。</li><li>「從每列日期起」累計該日期起的剩餘課；「各次段考之間」的第二段從 10/17、第三段從 12/2 開始，且不計各列日期前已過的課。</li><li>本檔不連線讀取 Google 行事曆。若調課、補課或考期異動，需重新整理資料及更新檔案。</li></ul></details>
 <details class="panel"><summary>每週授課時段</summary><div id="schedule"></div></details>
-<footer>資料依據：115學年度 排課編輯器.pdf（2026/9/17 列印）、Google「水中行事曆」與「台灣的節慶假日」。健康、知識大圖解列入課表，不安排單元進度或計算段考課數。</footer>
+<footer>資料依據：115學年度 排課編輯器.pdf（2026/9/17 列印）、Google「水中行事曆」與「台灣的節慶假日」。健康、知識大圖解不安排單元進度，仍以各次段考日期為界顯示剩餘課數。</footer>
 </main><script>
 'use strict';
 const START='2026-09-17';
@@ -55,7 +55,7 @@ $('range').textContent=date>=EXAMS[2].end?'本學期段考已結束。可選擇�
 const view=$('view').value||'daily';
 const days=view==='all'?[date]:sevenDates(date);
 $('range').textContent+=view==='all'?'｜全部班級，當天有課優先':`｜課表顯示：${days[0]} 至 ${days[6]}（含週末）`;
-const renderRow=({c,i,period},day)=>`<tr><td>${period?`第 ${period} 節${dayOff(c,day)?'<br><span class="muted">原排課・停課</span>':''}`:'—'}</td><td>${c.cls}</td><td>${c.subject}</td><td>${planButton(i,day,period)}</td>${EXAMS.map((e,j)=>{if(c.noProgress)return '<td class="muted">非段考科目</td>';const n=lessons(c,day,j,mode).length;return day>=e.start?'<td class="muted">已開始／結束</td>':`<td><button class="count ${n<=2?'low':''}" data-course="${i}" data-exam="${j}" data-date="${day}" aria-label="${c.cls} ${c.subject} ${e.label}前 ${n}節，查看日期">${n}</button></td>`;}).join('')}</tr>`;
+const renderRow=({c,i,period},day)=>`<tr><td>${period?`第 ${period} 節${dayOff(c,day)?'<br><span class="muted">原排課・停課</span>':''}`:'—'}</td><td>${c.cls}</td><td>${c.subject}</td><td>${planButton(i,day,period)}</td>${EXAMS.map((e,j)=>{const n=lessons(c,day,j,mode).length;return day>=e.start?'<td class="muted">已開始／結束</td>':`<td><button class="count ${n<=2?'low':''}" data-course="${i}" data-exam="${j}" data-date="${day}" aria-label="${c.cls} ${c.subject} ${e.label}前 ${n}節，查看日期">${n}</button></td>`;}).join('')}</tr>`;
 $('rows').innerHTML=days.map((day,index)=>{
 const visible=dailyRows(day,cls,view);
 const heading=`<tr class="day-heading"><th colspan="7" scope="rowgroup">${day}（星期${weekdays[new Date(day+'T00:00:00Z').getUTCDay()]}）<small>${index===0?'查詢當天':`接下來第 ${index} 天`}</small></th></tr>`;
