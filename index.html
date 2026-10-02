@@ -10,6 +10,7 @@ main{max-width:1360px}.plan-button{display:block;width:100%;text-align:left;min-
 <header><div class="eyebrow">115 學年度 · 第一學期</div><h1>段考前，還有幾節課？</h1><p>房琦瑋教師課表 · 生物／自然／公民／知識大圖解／健康 · 7 個班級</p><div class="muted">行事曆資料：2026/9/17｜離線查詢版，後續行事曆異動不會自動同步</div></header>
 <section class="controls" aria-label="查詢條件"><label>查詢日期<input id="date" type="date"></label><button id="today" type="button">回到今天</button><label>顯示範圍<select id="view"><option value="daily">當天＋接下來六天，依日期與節次</option><option value="all">全部班級，當天有課優先</option></select></label><label>班級<select id="class"><option value="all">全部班級</option><option>701</option><option>702</option><option>703</option><option>901</option><option>902</option><option>903</option><option>904</option></select></label><label>計算方式<select id="mode"><option value="cumulative">從每列日期起，累計至各次段考</option><option value="segment">各次段考之間，尚未上的課</option></select></label><button id="print" type="button">列印</button></section>
 <section class="cards" aria-label="段考日期"><div class="card">第一次段考<strong>10/15–10/16</strong><span>2026 年 · 考前計至 10/14</span></div><div class="card">第二次段考<strong>11/30–12/1</strong><span>2026 年 · 考前計至 11/29</span></div><div class="card">第三次段考<strong>1/18–1/20</strong><span>2027 年 · 考前計至 1/17</span></div></section>
+<section class="panel" aria-label="模擬考與會考倒數"><h2>模擬考與會考倒數</h2><p class="muted">依上方查詢日期計算日曆天數（含週末與假日），倒數至考試第一天。</p><div class="cards" id="examCountdown" aria-live="polite"></div><p class="muted">模擬考：Google「水中行事曆」2026/9/17 快照，目前已知一場；後續場次待補。會考：<a href="https://www.ctjhs.ntpc.edu.tw/p/406-1000-7303,r145.php" target="_blank" rel="noopener">教育部公告轉知（2026/10/2 查核）</a>。下學期課表與停課資料尚未齊全，這裡顯示天數，不估算會考前課數。</p></section>
 <p id="range" class="muted" aria-live="polite"></p><div class="tablewrap"><table><thead><tr><th scope="col">節次</th><th scope="col">班級</th><th scope="col">科目</th><th scope="col">本堂單元進度</th><th scope="col">第一次段考前</th><th scope="col">第二次段考前</th><th scope="col">第三次段考前</th></tr></thead><tbody id="rows"></tbody></table></div>
 <p class="muted">連續顯示七個日曆日（含週末），先依日期、再依節次排序。每列剩餘節數以該列日期起算，已扣除之前日期的課，包含該列當天的課；假日與已知停課日仍顯示原排課，並標示停課。單位：節。點選節數可查看日期；橘色表示尚未開始的段考前，只剩 0–2 節。</p>
 <section class="panel" id="planner">
@@ -50,7 +51,10 @@ const week=new Date(date+'T00:00:00Z').getUTCDay();
 return COURSES.flatMap((c,i)=>{if(cls!=='all'&&c.cls!==cls)return [];const periods=c.slots.filter(([w])=>w===week).map(([,p])=>p);return periods.length?periods.map(period=>({c,i,period})):view==='all'?[{c,i,period:0}]:[];}).sort((a,b)=>(a.period||99)-(b.period||99)||a.c.cls.localeCompare(b.c.cls));
 }
 function sevenDates(date){const start=new Date(date+'T00:00:00Z');return Array.from({length:7},(_,i)=>{const d=new Date(start);d.setUTCDate(d.getUTCDate()+i);return d.toISOString().slice(0,10);});}
-function render(){const date=$('date').value;if(!date)return;const mode=$('mode').value;const cls=$('class').value;
+const COUNTDOWN_EXAMS=[{label:'九年級模擬考',start:'2026-12-23',end:'2026-12-25',display:'2026/12/23–12/24'},{label:'116年國中教育會考',start:'2027-05-15',end:'2027-05-17',display:'2027/5/15–5/16'}];
+function countdownText(exam,date){if(date>=exam.end)return '已結束';if(date>=exam.start)return '考試進行中';return `剩 ${Math.round((Date.parse(exam.start+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000)} 天`;}
+function renderCountdown(date){$('examCountdown').innerHTML=COUNTDOWN_EXAMS.map(e=>`<div class="card">${e.label}<strong>${countdownText(e,date)}</strong><span>${e.display}</span></div>`).join('');}
+function render(){const date=$('date').value;if(!date)return;renderCountdown(date);const mode=$('mode').value;const cls=$('class').value;
 $('range').textContent=date>=EXAMS[2].end?'本學期段考已結束。可選擇較早日期回顧課數。':`${date<START?'資料從 2026/9/17 開始；已改由該日起算。':`查詢日：${date}（含當天）`}${mode==='cumulative'?'｜各列自該日期累計至各次段考前一天':'｜分段計算，不含各列日期前的課'}`;
 const view=$('view').value||'daily';
 const days=view==='all'?[date]:sevenDates(date);
@@ -113,3 +117,4 @@ renderPlanner();
 
 $('date').value=taipeiToday();render();
 </script></body></html>
+
